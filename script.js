@@ -17,7 +17,6 @@ const dom = {
   app: document.getElementById("app"),
   profileName: document.getElementById("profileName"),
 
-  player: document.getElementById("player"),
   playerStatus: document.getElementById("playerStatus"),
   heroTitle: document.getElementById("heroTitle"),
   heroOverview: document.getElementById("heroOverview"),
@@ -48,9 +47,9 @@ const dom = {
   modalListBtn: document.getElementById("modalListBtn"),
   closeModalBtn: document.getElementById("closeModalBtn"),
 
-  mainContent: document.getElementById("mainContent"),
-  topNav: document.getElementById("topNav"),
-  heroSection: document.getElementById("heroSection")
+  fullscreen: document.getElementById("fullscreenPlayer"),
+  fullscreenIframe: document.getElementById("fullscreenIframe"),
+  closePlayerBtn: document.getElementById("closePlayerBtn")
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -115,6 +114,8 @@ function wireUI() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeModal();
   });
+
+  dom.closePlayerBtn.addEventListener("click", closeFullscreenPlayer);
 }
 
 function showProfileScreen() {
@@ -176,8 +177,8 @@ async function loadAllRows() {
     fetchMovies("/movie/popular?page=1"),
     fetchMovies("/movie/top_rated?page=1"),
     fetchMovies("/discover/movie?with_genres=28&page=1"),
-    fetchMovies("/discover/movie?with_genres=27&page=1"),
-    fetchMovies("/discover/movie?with_genres=35&page=1")
+    fetchMovies("/discover/movie?with_genres=27?page=1"),
+    fetchMovies("/discover/movie?with_genres=35?page=1")
   ]);
 
   renderRow(popular, dom.popularRow);
@@ -262,48 +263,6 @@ function renderRow(items, container, options = {}) {
 function renderVisibleRows() {
   loadContinue();
   loadMyList();
-}
-
-async function openMovie(movie) {
-  setHeroMovie(movie, true);
-  saveContinue(movie);
-  openModal(movie);
-}
-
-function setHeroMovie(movie, save = true) {
-  currentHeroMovie = movie;
-  dom.heroTitle.textContent = movie.title || "Untitled";
-  dom.heroOverview.textContent = movie.overview || "No description available.";
-
-  if (save) {
-    localStorage.setItem(LS_HERO, JSON.stringify(movie));
-  }
-
-  updateHeroListButton();
-}
-
-async function playMovie(movie) {
-  dom.playerStatus.textContent = "Loading movie...";
-
-  const data = await fetchJson(
-    tmdb(`/movie/${movie.id}/external_ids`)
-  );
-
-  const imdbId = data?.imdb_id;
-
-  if (!imdbId) {
-    dom.playerStatus.textContent = "No IMDb ID found.";
-    dom.player.removeAttribute("src");
-    return;
-  }
-
-  dom.mainContent.style.display = "none";
-  dom.topNav.style.display = "none";
-
-  dom.heroSection.style.height = "100vh";
-
-  dom.player.src = `https://embedmaster.com/?ref=embdmstrplayer.com&imdb=${imdbId}`;
-  dom.playerStatus.textContent = "Playing movie";
 }
 
 function openModal(movie) {
@@ -433,4 +392,33 @@ function escapeHtml(s) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+/* ---------------------------
+   FULLSCREEN MOVIE PLAYER
+----------------------------*/
+
+async function playMovie(movie) {
+  dom.playerStatus.textContent = "Loading movie...";
+
+  const data = await fetchJson(
+    tmdb(`/movie/${movie.id}/external_ids`)
+  );
+
+  const imdbId = data?.imdb_id;
+
+  if (!imdbId) {
+    dom.playerStatus.textContent = "No IMDb ID found.";
+    return;
+  }
+
+  dom.fullscreen.style.display = "flex";
+  dom.fullscreenIframe.src = `https://embedmaster.com/?ref=embdmstrplayer.com&imdb=${imdbId}`;
+
+  dom.playerStatus.textContent = "Playing movie";
+}
+
+function closeFullscreenPlayer() {
+  dom.fullscreenIframe.src = "";
+  dom.fullscreen.style.display = "none";
 }
