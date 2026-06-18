@@ -13,10 +13,12 @@ const closeModal = document.getElementById("closeModal");
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
+/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   loadPopularMovies();
 });
 
+/* SEARCH */
 searchBtn.addEventListener("click", () => {
   const query = searchInput.value.trim();
   if (!query) return;
@@ -27,7 +29,7 @@ searchInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") searchBtn.click();
 });
 
-/* INFO MODAL */
+/* MODAL */
 infoBtn.addEventListener("click", () => {
   infoModal.classList.remove("hidden");
 });
