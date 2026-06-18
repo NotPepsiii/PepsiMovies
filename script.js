@@ -10,14 +10,13 @@ const searchBtn = document.getElementById("searchBtn");
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
-/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   loadPopularMovies();
 
-  loadCategory(28, "actionRow");  // Action
-  loadCategory(35, "comedyRow");  // Comedy
-  loadCategory(18, "dramaRow");   // Drama
-  loadCategory(27, "horrorRow");  // Horror
+  loadCategory(28, "actionRow");
+  loadCategory(35, "comedyRow");
+  loadCategory(18, "dramaRow");
+  loadCategory(27, "horrorRow");
 });
 
 /* SEARCH */
@@ -51,7 +50,7 @@ function searchMovies(query) {
     .catch(console.error);
 }
 
-/* CATEGORY LOADER */
+/* CATEGORY */
 function loadCategory(genreId, elementId) {
   fetch(`${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`)
     .then(res => res.json())
@@ -74,9 +73,9 @@ function renderMovies(movies, container) {
       : "https://via.placeholder.com/300x450?text=No+Image";
 
     card.innerHTML = `
-      <img src="${poster}" alt="${escapeHtml(movie.title)}">
+      <img src="${poster}" alt="${movie.title}">
       <div class="movie-info">
-        <div class="movie-title">${escapeHtml(movie.title)}</div>
+        <div class="movie-title">${movie.title}</div>
       </div>
     `;
 
@@ -86,14 +85,4 @@ function renderMovies(movies, container) {
 
     container.appendChild(card);
   });
-}
-
-/* SAFE TEXT */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
