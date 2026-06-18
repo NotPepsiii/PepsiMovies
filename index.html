@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Movie Site</title>
+  <title>Netflix Style Movie Site</title>
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -15,29 +14,48 @@
 
 <body>
 
-  <header class="topbar">
-    <h1>🎬 My Movie Site</h1>
+  <!-- TOP NAV -->
+  <header class="nav">
+    <div class="logo">NETFLIX<span>CLONE</span></div>
 
-    <div class="searchbar">
+    <div class="nav-center">
       <input id="searchInput" type="text" placeholder="Search movies..." />
       <button id="searchBtn">Search</button>
     </div>
   </header>
 
+  <!-- HERO PLAYER -->
+  <section class="hero">
+    <iframe id="player" allowfullscreen frameborder="0"></iframe>
+  </section>
+
+  <!-- CONTENT -->
   <main>
 
-    <section class="left">
+    <section class="row">
       <h2 id="sectionTitle">Popular Movies</h2>
-      <div id="movies" class="movie-grid"></div>
+      <div id="movies" class="row-posters"></div>
     </section>
 
-    <section class="right">
-      <h2>Now Playing</h2>
-      <iframe
-        id="player"
-        allowfullscreen
-        frameborder="0">
-      </iframe>
+    <!-- CATEGORY ROWS -->
+    <section class="row">
+      <h2>Action</h2>
+      <div id="actionRow" class="row-posters"></div>
+    </section>
+
+    <section class="row">
+      <h2>Comedy</h2>
+      <div id="comedyRow" class="row-posters"></div>
+    </section>
+
+    <section class="row">
+      <h2>Drama</h2>
+      <div id="dramaRow" class="row-posters"></div>
+    </section>
+
+    <section class="row">
+      <h2>Horror</h2>
+      <div id="horrorRow" class="row-posters"></div>
     </section>
 
   </main>
