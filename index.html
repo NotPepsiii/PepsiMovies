@@ -94,15 +94,17 @@
 
         <div style="margin-top:12px;">
           <div style="font-weight:700;margin-bottom:6px;">Try embed patterns</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="try-btn" data-pattern="/tv/{id}/season/{s}/episode/{e}">/tv/{id}/season/{s}/episode/{e}</button>
-            <button class="try-btn" data-pattern="/series/{id}/season/{s}/episode/{e}">/series/{id}/season/{s}/episode/{e}</button>
-            <button class="try-btn" data-pattern="/watch/tv/{id}/season/{s}/episode/{e}">/watch/tv/{id}/season/{s}/episode/{e}</button>
-            <button class="try-btn" data-pattern="/tv/{id}">/tv/{id}</button>
-            <button class="try-btn" data-pattern="/series/{id}">/series/{id}</button>
+          <div id="tryButtons" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <!-- Buttons are injected by script for easier maintenance -->
           </div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+            <button id="usePatternBtn" class="use-pattern-btn" style="display:none;">Use this pattern</button>
+            <div id="currentPatternLabel" style="color:#bfc7cc;font-size:0.9rem;"></div>
+          </div>
+
           <p style="font-size:0.85rem;color:#bfc7cc;margin-top:8px;">
-            Click a pattern to test it in the player. If one loads, tell me and I’ll make it the default.
+            Click a pattern to test it in the player. When one loads (not a 404), click "Use this pattern" to save it for automatic playback.
           </p>
         </div>
 
