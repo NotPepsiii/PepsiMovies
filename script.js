@@ -1,28 +1,23 @@
+// Robust Disney UI v2 script — defensive, logs errors, uses delegation
 // 🔑 Put your TMDB API key here
-const TMDB_API_KEY = "REPLACE_WITH_YOUR_KEY";
+const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-const heroTitle = document.getElementById("heroTitle");
-const heroOverview = document.getElementById("heroOverview");
-const heroArt = document.querySelector(".hero-art");
-const popularRail = document.getElementById("popularRail");
-const trendingRail = document.getElementById("trendingRail");
-const continueRail = document.getElementById("continueRail");
-const playerModal = document.getElementById("playerModal");
-const playerContainer = document.getElementById("playerContainer");
-
-let debounceTimer = null;
 const DEBOUNCE_MS = 350;
+let debounceTimer = null;
 
-// Basic helper: escape text for DOM
-function escapeHtml(str){
-  return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+// Safe DOM getter
+function $id(id){ return document.getElementById(id); }
+function safeQuery(selector, root = document){
+  try { return root.querySelector(selector); }
+  catch(e){ console.error("safeQuery failed for", selector, e); return null; }
 }
 
-// Fetch wrapper with basic error handling and caching
+// Escape helper
+function escapeHtml(str){ return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }
+
+// Fetch wrapper with caching and safe error handling
 async function fetchJson(url){
   const cacheKey = `cache:${url}`;
   try{
@@ -31,147 +26,207 @@ async function fetchJson(url){
     const res = await fetch(url);
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e){ /* ignore storage errors */ }
     return data;
   }catch(err){
-    console.error("Fetch error:", err);
-    throw err;
+    console.warn("fetchJson error:", err, url);
+    return null;
   }
 }
 
-// Render a rail of movies
+// Render helpers
+function makeCard(movie){
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "card";
+  btn.dataset.movieId = movie.id;
+  btn.dataset.movieTitle = movie.title || movie.name || "";
+  btn.innerHTML = `
+    <img loading="lazy" src="${movie.poster_path ? TMDB_IMG + movie.poster_path : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${escapeHtml(movie.title || movie.name)} poster">
+    <div class="meta">
+      <div class="title">${escapeHtml(movie.title || movie.name)}</div>
+      <div class="sub">${movie.release_date ? movie.release_date.slice(0,4) : 'N/A'} • ⭐ ${movie.vote_average?.toFixed(1) ?? 'N/A'}</div>
+    </div>
+  `;
+  return btn;
+}
+
 function renderRail(container, movies){
-  container.innerHTML = "";
-  if(!movies || movies.length === 0){
-    container.innerHTML = `<div class="card"><div class="meta"><div class="title">No items</div></div></div>`;
-    return;
+  try{
+    container.innerHTML = "";
+    if(!movies || movies.length === 0){
+      container.innerHTML = `<div class="card"><div class="meta"><div class="title">No items</div></div></div>`;
+      return;
+    }
+    movies.forEach(m => container.appendChild(makeCard(m)));
+  }catch(e){
+    console.error("renderRail error:", e);
+    container.innerHTML = `<div class="card"><div class="meta"><div class="title">Render error</div></div></div>`;
   }
-  movies.forEach(m => {
-    const card = document.createElement("button");
-    card.className = "card";
-    card.setAttribute("aria-label", `${m.title || m.name} — ${m.release_date ? m.release_date.slice(0,4) : ''}`);
-    card.innerHTML = `
-      <img loading="lazy" src="${m.poster_path ? TMDB_IMG + m.poster_path : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${escapeHtml(m.title || m.name)} poster">
-      <div class="meta">
-        <div class="title">${escapeHtml(m.title || m.name)}</div>
-        <div class="sub">${m.release_date ? m.release_date.slice(0,4) : 'N/A'} • ⭐ ${m.vote_average?.toFixed(1) ?? 'N/A'}</div>
-      </div>
-    `;
-    card.addEventListener("click", () => openPlayerFor(m));
-    container.appendChild(card);
-  });
 }
 
-// Open player modal (user-initiated). For safety, only embed when user clicks.
-function openPlayerFor(movie){
-  // Prefer official trailer from YouTube via TMDB videos endpoint
-  playerContainer.innerHTML = `<div style="padding:24px;color:var(--muted)">Loading player…</div>`;
-  playerModal.setAttribute("aria-hidden", "false");
+// Player modal controls (safe)
+function openPlayerModal(){
+  const modal = $id("playerModal");
+  if(!modal) return console.warn("playerModal not found");
+  modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
-
-  fetchJson(`${TMDB_BASE}/movie/${movie.id}/videos?api_key=${TMDB_API_KEY}&language=en-US`)
-    .then(data => {
-      const trailer = (data.results || []).find(v => v.type === "Trailer" && v.site === "YouTube") || data.results?.[0];
-      if(trailer && trailer.site === "YouTube"){
-        const src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`;
-        playerContainer.innerHTML = `<iframe src="${src}" title="${escapeHtml(movie.title)} trailer" allow="autoplay; encrypted-media" frameborder="0" allowfullscreen></iframe>`;
-      } else {
-        playerContainer.innerHTML = `<div style="padding:24px;color:var(--muted)">Trailer not available. Open details page instead.</div>`;
-      }
-    })
-    .catch(err => {
-      playerContainer.innerHTML = `<div style="padding:24px;color:var(--muted)">Unable to load trailer.</div>`;
-    });
 }
-
-// Close modal
-function closeModal(){
-  playerModal.setAttribute("aria-hidden", "true");
-  playerContainer.innerHTML = "";
+function closePlayerModal(){
+  const modal = $id("playerModal");
+  if(!modal) return;
+  modal.setAttribute("aria-hidden", "true");
+  const container = $id("playerContainer");
+  if(container) container.innerHTML = "";
   document.body.style.overflow = "";
 }
 
-// Load hero (pick a featured movie)
-async function loadHero(){
-  try{
-    const data = await fetchJson(`${TMDB_BASE}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`);
-    const pick = data.results?.[0];
-    if(!pick) return;
-    heroTitle.textContent = pick.title || pick.name;
-    heroOverview.textContent = pick.overview || "";
-    heroArt.style.backgroundImage = `url(${pick.backdrop_path ? TMDB_IMG.replace('/w500','/w780') + pick.backdrop_path : 'https://via.placeholder.com/1280x720'})`;
-    document.getElementById("playHero").onclick = () => openPlayerFor(pick);
-    document.getElementById("moreHero").onclick = () => openDetails(pick);
-  }catch(err){
-    console.warn("Hero load failed", err);
+// Open trailer for a movie id (safe)
+async function openPlayerForMovieId(id, title){
+  const container = $id("playerContainer");
+  if(!container) return console.warn("playerContainer missing");
+  container.innerHTML = `<div style="padding:24px;color:var(--muted)">Loading player…</div>`;
+  openPlayerModal();
+
+  const data = await fetchJson(`${TMDB_BASE}/movie/${id}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
+  if(!data || !data.results || data.results.length === 0){
+    container.innerHTML = `<div style="padding:24px;color:var(--muted)">Trailer not available.</div>`;
+    return;
+  }
+  const trailer = data.results.find(v => v.type === "Trailer" && v.site === "YouTube") || data.results[0];
+  if(trailer && trailer.site === "YouTube"){
+    const src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`;
+    container.innerHTML = `<iframe src="${src}" title="${escapeHtml(title)} trailer" allow="autoplay; encrypted-media" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    container.innerHTML = `<div style="padding:24px;color:var(--muted)">Trailer not available.</div>`;
   }
 }
 
-// Open details (fallback to TMDB page)
-function openDetails(movie){
-  const url = `https://www.themoviedb.org/movie/${movie.id}`;
-  window.open(url, "_blank", "noopener");
+// Load hero and rails (safe)
+async function loadHero(){
+  const heroTitle = $id("heroTitle");
+  const heroOverview = $id("heroOverview");
+  const heroArt = safeQuery(".hero-art");
+  try{
+    const data = await fetchJson(`${TMDB_BASE}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`);
+    const pick = data?.results?.[0];
+    if(!pick) return;
+    if(heroTitle) heroTitle.textContent = pick.title || pick.name;
+    if(heroOverview) heroOverview.textContent = pick.overview || "";
+    if(heroArt) heroArt.style.backgroundImage = `url(${pick.backdrop_path ? TMDB_IMG.replace('/w500','/w780') + pick.backdrop_path : 'https://via.placeholder.com/1280x720'})`;
+    const playHero = $id("playHero");
+    if(playHero) playHero.onclick = () => openPlayerForMovieId(pick.id, pick.title || pick.name);
+    const moreHero = $id("moreHero");
+    if(moreHero) moreHero.onclick = () => window.open(`https://www.themoviedb.org/movie/${pick.id}`, "_blank", "noopener");
+  }catch(e){
+    console.warn("loadHero failed", e);
+  }
 }
 
-// Load rails
 async function loadRails(){
+  const popularRail = $id("popularRail");
+  const trendingRail = $id("trendingRail");
+  const continueRail = $id("continueRail");
+  if(!popularRail || !trendingRail || !continueRail) return console.warn("One or more rails missing");
   try{
     const [popular, trending] = await Promise.all([
       fetchJson(`${TMDB_BASE}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`),
       fetchJson(`${TMDB_BASE}/trending/movie/week?api_key=${TMDB_API_KEY}`)
     ]);
-    renderRail(popularRail, popular.results || []);
-    renderRail(trendingRail, trending.results || []);
-    // continueRail can be user-specific; for demo, reuse popular
-    renderRail(continueRail, (popular.results || []).slice(0,8));
-  }catch(err){
-    console.error("Rail load error", err);
+    renderRail(popularRail, popular?.results || []);
+    renderRail(trendingRail, trending?.results || []);
+    renderRail(continueRail, (popular?.results || []).slice(0,8));
+  }catch(e){
+    console.error("loadRails error", e);
     popularRail.innerHTML = `<div class="card"><div class="meta"><div class="title">Unable to load content</div></div></div>`;
   }
 }
 
-// Search with debounce
+// Search
 function doSearch(query){
   if(!query) return loadRails();
   fetchJson(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`)
     .then(data => {
-      renderRail(popularRail, data.results || []);
-      heroTitle.textContent = `Search: ${query}`;
-      heroOverview.textContent = `Results for "${query}"`;
-      heroArt.style.backgroundImage = `linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.6))`;
+      const popularRail = $id("popularRail");
+      if(popularRail) renderRail(popularRail, data?.results || []);
+      const heroTitle = $id("heroTitle");
+      const heroOverview = $id("heroOverview");
+      if(heroTitle) heroTitle.textContent = `Search: ${query}`;
+      if(heroOverview) heroOverview.textContent = `Results for "${query}"`;
     })
     .catch(err => console.error("Search failed", err));
 }
 
-// Event wiring
-searchBtn.addEventListener("click", () => {
-  const q = searchInput.value.trim();
-  doSearch(q);
-});
-searchInput.addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const q = e.target.value.trim();
-    if(q) doSearch(q);
-  }, DEBOUNCE_MS);
-});
+// Global event delegation for cards and header actions
+function attachDelegation(){
+  document.addEventListener("click", (e) => {
+    const card = e.target.closest(".card");
+    if(card && card.dataset && card.dataset.movieId){
+      const id = card.dataset.movieId;
+      const title = card.dataset.movieTitle || "";
+      openPlayerForMovieId(id, title);
+      return;
+    }
 
-// Modal close handlers
-playerModal.addEventListener("click", (e) => {
-  if(e.target.matches("[data-dismiss], .modal-backdrop")) closeModal();
-});
-playerModal.querySelector(".modal-close").addEventListener("click", closeModal);
+    if(e.target && e.target.id === "searchBtn"){
+      const q = ($id("searchInput")?.value || "").trim();
+      doSearch(q);
+      return;
+    }
 
-// Keyboard: Esc to close modal
-document.addEventListener("keydown", (e) => {
-  if(e.key === "Escape" && playerModal.getAttribute("aria-hidden") === "false") closeModal();
-});
+    if(e.target && (e.target.matches(".modal-backdrop") || e.target.classList.contains("modal-close") || e.target.dataset.dismiss === "modal")){
+      closePlayerModal();
+      return;
+    }
+  });
+}
 
-// Init
-document.addEventListener("DOMContentLoaded", () => {
-  if(!TMDB_API_KEY || TMDB_API_KEY === "REPLACE_WITH_YOUR_KEY"){
-    console.warn("TMDB API key missing. Replace TMDB_API_KEY in script.js");
+// Keyboard handlers
+function attachKeyboard(){
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape" && $id("playerModal")?.getAttribute("aria-hidden") === "false"){
+      closePlayerModal();
+    }
+  });
+}
+
+// Init safely
+function init(){
+  try{
+    attachDelegation();
+    attachKeyboard();
+
+    const searchInput = $id("searchInput");
+    if(searchInput){
+      searchInput.addEventListener("input", (ev) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          const q = ev.target.value.trim();
+          if(q) doSearch(q);
+        }, DEBOUNCE_MS);
+      });
+      searchInput.addEventListener("keydown", (ev) => {
+        if(ev.key === "Enter") {
+          const q = ev.target.value.trim();
+          doSearch(q);
+        }
+      });
+    }
+
+    const modalClose = safeQuery(".modal-close");
+    if(modalClose) modalClose.addEventListener("click", closePlayerModal);
+
+    loadHero();
+    loadRails();
+
+    console.info("UI initialized. TMDB key present:", !!TMDB_API_KEY && TMDB_API_KEY !== "REPLACE_WITH_YOUR_KEY");
+  }catch(e){
+    console.error("Initialization error (caught):", e);
   }
-  loadHero();
-  loadRails();
-});
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
