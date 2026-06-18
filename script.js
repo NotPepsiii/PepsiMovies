@@ -3,16 +3,24 @@ const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const moviesContainer = document.getElementById("movies");
 const player = document.getElementById("player");
 const sectionTitle = document.getElementById("sectionTitle");
+
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
+/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   loadPopularMovies();
+
+  loadCategory(28, "actionRow");  // Action
+  loadCategory(35, "comedyRow");  // Comedy
+  loadCategory(18, "dramaRow");   // Drama
+  loadCategory(27, "horrorRow");  // Horror
 });
 
+/* SEARCH */
 searchBtn.addEventListener("click", () => {
   const query = searchInput.value.trim();
   if (!query) return;
@@ -23,37 +31,39 @@ searchInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") searchBtn.click();
 });
 
-function setLoading() {
-  moviesContainer.innerHTML = `<p style="opacity:.6">Loading...</p>`;
-}
-
+/* POPULAR */
 function loadPopularMovies() {
   sectionTitle.textContent = "Popular Movies";
-  setLoading();
 
-  fetch(`${TMDB_BASE}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`)
+  fetch(`${TMDB_BASE}/movie/popular?api_key=${TMDB_API_KEY}`)
     .then(res => res.json())
-    .then(data => renderMovies(data.results))
-    .catch(err => console.error(err));
+    .then(data => renderMovies(data.results, moviesContainer))
+    .catch(console.error);
 }
 
+/* SEARCH */
 function searchMovies(query) {
   sectionTitle.textContent = `Search: ${query}`;
-  setLoading();
 
-  fetch(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`)
+  fetch(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
     .then(res => res.json())
-    .then(data => renderMovies(data.results))
-    .catch(err => console.error(err));
+    .then(data => renderMovies(data.results, moviesContainer))
+    .catch(console.error);
 }
 
-function renderMovies(movies) {
-  moviesContainer.innerHTML = "";
+/* CATEGORY LOADER */
+function loadCategory(genreId, elementId) {
+  fetch(`${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`)
+    .then(res => res.json())
+    .then(data => renderMovies(data.results, document.getElementById(elementId)))
+    .catch(console.error);
+}
 
-  if (!movies || movies.length === 0) {
-    moviesContainer.innerHTML = `<p style="opacity:.6">No movies found.</p>`;
-    return;
-  }
+/* RENDER */
+function renderMovies(movies, container) {
+  container.innerHTML = "";
+
+  if (!movies) return;
 
   movies.forEach(movie => {
     const card = document.createElement("div");
@@ -67,10 +77,6 @@ function renderMovies(movies) {
       <img src="${poster}" alt="${escapeHtml(movie.title)}">
       <div class="movie-info">
         <div class="movie-title">${escapeHtml(movie.title)}</div>
-        <div class="movie-meta">
-          ${movie.release_date ? movie.release_date.slice(0, 4) : "N/A"}
-          • ⭐ ${movie.vote_average?.toFixed(1) ?? "N/A"}
-        </div>
       </div>
     `;
 
@@ -78,10 +84,11 @@ function renderMovies(movies) {
       player.src = `https://embedmaster.link/movie/${movie.id}`;
     });
 
-    moviesContainer.appendChild(card);
+    container.appendChild(card);
   });
 }
 
+/* SAFE TEXT */
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
