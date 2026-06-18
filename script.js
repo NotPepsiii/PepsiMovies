@@ -1,161 +1,116 @@
-// script.js — MOVIES ONLY VERSION (cleaned, no series)
+const TMDB = "https://api.themoviedb.org/3";
+const KEY = "35ee82bcad013e6a6237a0a087d7eb32";
+const IMG = "https://image.tmdb.org/t/p/w300";
 
-const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
-const TMDB_BASE = "https://api.themoviedb.org/3";
-const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
+let profile = localStorage.getItem("profile") || null;
 
-const HOSTS = [
-  "https://embedmaster.link",
-  "https://embedmaster.com",
-  "https://player.embedmaster.link",
-  "https://player.embedmaster.com"
-];
+// ---------- PROFILE ----------
+function selectProfile(name) {
+  profile = name;
+  localStorage.setItem("profile", name);
 
-// DOM
-const player = document.getElementById("player");
-const playerStatus = document.getElementById("playerStatus");
+  document.getElementById("profileScreen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("profileName").innerText = name;
 
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-
-const popularRow = document.getElementById("popularRow");
-const topRatedRow = document.getElementById("topRatedRow");
-const actionRow = document.getElementById("actionRow");
-const horrorRow = document.getElementById("horrorRow");
-const comedyRow = document.getElementById("comedyRow");
-
-// STATE
-let trying = false;
-
-// INIT
-document.addEventListener("DOMContentLoaded", () => {
-  loadInitialRows();
-  wireUI();
-});
-
-// UI
-function wireUI() {
-  searchBtn.addEventListener("click", () => {
-    const q = searchInput.value.trim();
-    if (!q) return;
-    searchMovies(q);
-  });
-
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchBtn.click();
-  });
+  init();
 }
 
-// -------------------- LOADERS --------------------
-
-async function fetchJson(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
+// ---------- INIT ----------
+function init() {
+  loadAll();
+  loadContinue();
+  wireSearch();
 }
 
-async function loadInitialRows() {
-  loadPopularMovies();
-  loadTopRatedMovies();
-  loadGenreMovies(28, actionRow);
-  loadGenreMovies(27, horrorRow);
-  loadGenreMovies(35, comedyRow);
+// ---------- SEARCH ----------
+function wireSearch() {
+  document.getElementById("searchBtn").onclick = async () => {
+    const q = document.getElementById("searchInput").value;
+    const res = await fetch(`${TMDB}/search/movie?api_key=${KEY}&query=${q}`);
+    const data = await res.json();
+    render(data.results, document.getElementById("popularRow"));
+  };
 }
 
-async function loadPopularMovies() {
-  const data = await fetchJson(`${TMDB_BASE}/movie/popular?api_key=${TMDB_API_KEY}`);
-  renderRow(data?.results || popularRow, popularRow);
+// ---------- LOAD ----------
+async function loadAll() {
+  render(await get("/movie/popular"), popularRow);
+  render(await get("/movie/top_rated"), topRatedRow);
+  render(await get("/discover/movie?with_genres=28"), actionRow);
+  render(await get("/discover/movie?with_genres=27"), horrorRow);
 }
 
-async function loadTopRatedMovies() {
-  const data = await fetchJson(`${TMDB_BASE}/movie/top_rated?api_key=${TMDB_API_KEY}`);
-  renderRow(data?.results || [], topRatedRow);
+async function get(path) {
+  const res = await fetch(`${TMDB}${path}?api_key=${KEY}`);
+  const data = await res.json();
+  return data.results;
 }
 
-async function loadGenreMovies(genreId, container) {
-  const data = await fetchJson(`${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`);
-  renderRow(data?.results || [], container);
-}
-
-// -------------------- SEARCH --------------------
-
-async function searchMovies(query) {
-  const data = await fetchJson(
-    `${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
-  );
-
-  const searchSection = document.getElementById("searchSection");
-  const searchRow = document.getElementById("searchRow");
-
-  searchSection.style.display = "block";
-  renderRow(data?.results || [], searchRow);
-}
-
-// -------------------- RENDER --------------------
-
-function renderRow(items, container) {
+// ---------- RENDER ----------
+function render(items, container) {
   container.innerHTML = "";
 
-  if (!items || items.length === 0) {
-    container.innerHTML = "<p>No results found.</p>";
-    return;
-  }
+  items.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-  items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "movie-card";
-
-    const posterPath = item.poster_path || item.backdrop_path;
-    const poster = posterPath
-      ? `${TMDB_IMG}${posterPath}`
-      : "https://via.placeholder.com/300x450?text=No+Image";
-
-    const title = item.title || "Untitled";
-    const year = (item.release_date || "").slice(0, 4) || "N/A";
-    const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
-
-    card.innerHTML = `
-      <img src="${poster}" alt="${title}">
-      <div class="movie-info">
-        <div class="movie-title">${title}</div>
-        <div class="movie-meta">${year} • ⭐ ${rating}</div>
-      </div>
+    div.innerHTML = `
+      <img src="${IMG + m.poster_path}">
     `;
 
-    card.addEventListener("click", () => {
-      playMovie(item.id);
-    });
+    div.onclick = () => playMovie(m);
 
-    container.appendChild(card);
+    container.appendChild(div);
   });
 }
 
-// -------------------- PLAYER --------------------
+// ---------- PLAY MOVIE + TRAILER ----------
+async function playMovie(movie) {
+  saveContinue(movie);
 
-function playMovie(tmdbId) {
-  const url = `${HOSTS[0]}/movie/${tmdbId}`;
-  setPlayer(url);
-}
+  // try trailer
+  const res = await fetch(`${TMDB}/movie/${movie.id}/videos?api_key=${KEY}`);
+  const data = await res.json();
 
-function setPlayer(url) {
-  try {
-    player.src = url;
-    playerStatus.textContent = "Loading movie...";
-  } catch (e) {
-    console.error(e);
+  const trailer = data.results.find(v => v.type === "Trailer");
+
+  if (trailer) {
+    document.getElementById("player").src =
+      `https://www.youtube.com/embed/${trailer.key}`;
   }
 }
 
-// -------------------- UTIL --------------------
+// ---------- CONTINUE WATCHING ----------
+function saveContinue(movie) {
+  let data = JSON.parse(localStorage.getItem("continue_" + profile) || "[]");
 
-function escapeHtml(s) {
-  return String(s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  data = data.filter(x => x.id !== movie.id);
+  data.unshift(movie);
+
+  localStorage.setItem("continue_" + profile, JSON.stringify(data.slice(0, 10)));
+
+  loadContinue();
 }
+
+function loadContinue() {
+  const container = document.getElementById("continueRow");
+  if (!container) return;
+
+  const data = JSON.parse(localStorage.getItem("continue_" + profile) || "[]");
+
+  container.innerHTML = "";
+
+  data.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `<img src="${IMG + m.poster_path}">`;
+    div.onclick = () => playMovie(m);
+
+    container.appendChild(div);
+  });
+}
+
+// expose
+window.selectProfile = selectProfile;
