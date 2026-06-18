@@ -7,65 +7,57 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <header class="top-nav">
-    <div class="left"><h1 class="logo">PepsiMovies</h1></div>
-    <div class="center-tabs">
-      <button id="tabMovies" class="tab active">Movies</button>
-      <button id="tabSeries" class="tab">Series</button>
+    <div class="left">
+      <h1 class="logo">PepsiMovies</h1>
     </div>
+
     <div class="right">
       <div class="search-box">
-        <input id="searchInput" type="text" placeholder="Search movies or series..." />
+        <input id="searchInput" type="text" placeholder="Search movies..." />
         <button id="searchBtn">Search</button>
       </div>
     </div>
   </header>
 
   <main>
+
     <section class="player-section">
-      <iframe id="player" allowfullscreen frameborder="0" title="Player"></iframe>
-      <div id="playerStatus" class="player-status" aria-live="polite"></div>
+      <iframe id="player" allowfullscreen frameborder="0"></iframe>
+      <div id="playerStatus" class="player-status"></div>
     </section>
 
-    <div id="moviesView">
-      <section class="category" id="searchSection" style="display:none;">
-        <h2>Search Results</h2>
-        <div id="searchRow" class="row"></div>
-      </section>
+    <section class="category" id="searchSection" style="display:none;">
+      <h2>Search Results</h2>
+      <div id="searchRow" class="row"></div>
+    </section>
 
-      <section class="category"><h2>Popular Movies</h2><div id="popularRow" class="row"></div></section>
-      <section class="category"><h2>Top Rated</h2><div id="topRatedRow" class="row"></div></section>
-      <section class="category"><h2>Action</h2><div id="actionRow" class="row"></div></section>
-      <section class="category"><h2>Horror</h2><div id="horrorRow" class="row"></div></section>
-      <section class="category"><h2>Comedy</h2><div id="comedyRow" class="row"></div></section>
-    </div>
+    <section class="category">
+      <h2>Popular Movies</h2>
+      <div id="popularRow" class="row"></div>
+    </section>
 
-    <div id="seriesView" style="display:none;">
-      <section class="category"><h2>Popular Series</h2><div id="seriesRow" class="row"></div></section>
-    </div>
+    <section class="category">
+      <h2>Top Rated</h2>
+      <div id="topRatedRow" class="row"></div>
+    </section>
 
-    <aside id="seriesPanel" class="series-panel" style="display:none;">
-      <button id="closeSeriesPanel" class="close-btn" aria-label="Close">✕</button>
-      <div id="seriesDetail">
-        <h3 id="seriesTitle">Series Title</h3>
-        <p id="seriesOverview" class="muted"></p>
+    <section class="category">
+      <h2>Action</h2>
+      <div id="actionRow" class="row"></div>
+    </section>
 
-        <div class="selector-row">
-          <label for="seasonSelect">Season</label>
-          <select id="seasonSelect"></select>
-          <label for="episodeSelect">Episode</label>
-          <select id="episodeSelect"></select>
-        </div>
+    <section class="category">
+      <h2>Horror</h2>
+      <div id="horrorRow" class="row"></div>
+    </section>
 
-        <div class="panel-actions">
-          <button id="playEpisodeBtn" class="primary">Play Episode</button>
-          <p id="seriesError" class="error" style="display:none;"></p>
-          <p id="patternInfo" class="muted" style="font-size:0.85rem;margin-top:8px;"></p>
-        </div>
+    <section class="category">
+      <h2>Comedy</h2>
+      <div id="comedyRow" class="row"></div>
+    </section>
 
-        <div id="episodeList" class="episode-list"></div>
-      </div>
-    </aside>
   </main>
 
   <script src="script.js"></script>
