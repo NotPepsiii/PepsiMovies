@@ -29,6 +29,7 @@
     <!-- Player -->
     <section class="player-section">
       <iframe id="player" allowfullscreen frameborder="0" title="Player"></iframe>
+      <div id="playerStatus" class="player-status" aria-live="polite"></div>
     </section>
 
     <!-- Movies View -->
@@ -90,21 +91,7 @@
         <div class="panel-actions">
           <button id="playEpisodeBtn" class="primary">Play Episode</button>
           <p id="seriesError" class="error" style="display:none;"></p>
-        </div>
-
-        <div style="margin-top:12px;">
-          <div style="font-weight:700;margin-bottom:6px;">Try embed patterns</div>
-          <div id="tryButtons" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-
-          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-            <button id="openTestBtn" class="try-action" style="display:none;">Open tested URL in new tab</button>
-            <button id="usePatternBtn" class="use-pattern-btn" style="display:none;">Use this pattern</button>
-            <div id="currentPatternLabel" style="color:#bfc7cc;font-size:0.9rem;"></div>
-          </div>
-
-          <p style="font-size:0.85rem;color:#bfc7cc;margin-top:8px;">
-            Click a pattern to test it in the player. If it loads (not a 404), click "Use this pattern" to save it.
-          </p>
+          <p id="patternInfo" class="muted" style="font-size:0.85rem;margin-top:8px;"></p>
         </div>
 
         <div id="episodeList" class="episode-list"></div>
