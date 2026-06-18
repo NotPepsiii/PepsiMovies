@@ -4,7 +4,7 @@
 const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
-const EMBED_BASE = "https://embedmaster.link"; // confirmed working domain
+const EMBED_BASE = "https://embedmaster.link"; // confirmed working domain for movies
 
 // ---------------------------
 // DOM
@@ -38,17 +38,27 @@ const playEpisodeBtn = document.getElementById("playEpisodeBtn");
 const seriesError = document.getElementById("seriesError");
 const episodeList = document.getElementById("episodeList");
 
+// Try buttons (delegated)
+const tryButtonsSelector = ".try-btn";
+
 // ---------------------------
 // INIT
 // ---------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  // load rows in parallel
   loadPopularMovies();
   loadTopRatedMovies();
   loadGenreMovies(28, actionRow);   // Action
   loadGenreMovies(27, horrorRow);   // Horror
   loadGenreMovies(35, comedyRow);   // Comedy
   loadPopularSeries();
+
+  // delegate try button clicks inside series panel
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t && t.matches && t.matches(tryButtonsSelector)) {
+      handleTryPattern(t.getAttribute("data-pattern"));
+    }
+  });
 });
 
 // ---------------------------
@@ -133,7 +143,6 @@ async function searchAll(query) {
   const tvResults = (tv?.results || []).map(t => ({ ...t, _isTv: true }));
   const combined = [...movieResults, ...tvResults];
   renderRow(combined, searchRow, null); // mixed
-  // switch to movies tab view so search is visible
   tabMovies.classList.add("active");
   tabSeries.classList.remove("active");
   moviesView.style.display = "";
@@ -176,18 +185,14 @@ function renderRow(items, container, isTvFlag) {
       const tvFlag = (typeof isTvFlag === "boolean") ? isTvFlag : !!item._isTv;
 
       if (tvFlag) {
-        // open series panel and load seasons/episodes
         openSeriesPanel(tmdbId);
-        // ensure series tab is visible
         tabSeries.classList.add("active");
         tabMovies.classList.remove("active");
         moviesView.style.display = "none";
         seriesView.style.display = "";
       } else {
-        // movie: set iframe src directly
         const embedUrl = `${EMBED_BASE}/movie/${tmdbId}`;
         player.src = embedUrl;
-        // scroll to player on small screens
         if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -200,8 +205,8 @@ function renderRow(items, container, isTvFlag) {
 // SERIES PANEL / SEASONS / EPISODES
 // ---------------------------
 let currentSeriesId = null;
-let currentSeasons = []; // array of {season_number, name, episode_count}
-let currentEpisodes = []; // episodes for selected season
+let currentSeasons = [];
+let currentEpisodes = [];
 
 async function openSeriesPanel(tvId) {
   seriesError.style.display = "none";
@@ -211,7 +216,6 @@ async function openSeriesPanel(tvId) {
   seriesPanel.style.display = "block";
   currentSeriesId = tvId;
 
-  // fetch series details
   const details = await fetchJson(`${TMDB_BASE}/tv/${tvId}?api_key=${TMDB_API_KEY}&language=en-US`);
   if (!details) {
     seriesError.textContent = "Failed to load series details.";
@@ -222,10 +226,7 @@ async function openSeriesPanel(tvId) {
   seriesTitle.textContent = details.name || details.original_name || "Series";
   seriesOverview.textContent = details.overview || "";
 
-  // seasons array
   currentSeasons = (details.seasons || []).filter(s => typeof s.season_number === "number");
-
-  // populate season select (sort by season_number ascending)
   currentSeasons.sort((a,b) => a.season_number - b.season_number);
   seasonSelect.innerHTML = "";
   currentSeasons.forEach(s => {
@@ -241,7 +242,6 @@ async function openSeriesPanel(tvId) {
     return;
   }
 
-  // auto-select the first season
   const firstSeason = currentSeasons[0].season_number;
   await loadSeasonEpisodes(tvId, firstSeason);
 }
@@ -250,20 +250,15 @@ closeSeriesPanel.addEventListener("click", () => {
   seriesPanel.style.display = "none";
 });
 
-// when season changes
 seasonSelect.addEventListener("change", async () => {
   const seasonVal = seasonSelect.value;
   const seasonNum = normalizeSeason(seasonVal);
-  if (seasonNum === null) return; // error shown by normalizeSeason
+  if (seasonNum === null) return;
   await loadSeasonEpisodes(currentSeriesId, seasonNum);
 });
 
-// when episode select changes, highlight selection (no extra action)
-episodeSelect.addEventListener("change", () => {
-  // nothing else needed here
-});
+episodeSelect.addEventListener("change", () => {});
 
-// play button
 playEpisodeBtn.addEventListener("click", () => {
   const seasonVal = seasonSelect.value;
   const episodeVal = episodeSelect.value;
@@ -271,18 +266,17 @@ playEpisodeBtn.addEventListener("click", () => {
   const episodeNum = normalizeEpisode(episodeVal);
   if (seasonNum === null || episodeNum === null) return;
 
+  // default pattern we try first
   const embedUrl = `${EMBED_BASE}/tv/${currentSeriesId}/season/${seasonNum}/episode/${episodeNum}`;
   player.src = embedUrl;
   if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
 });
 
-// load episodes for a season
 async function loadSeasonEpisodes(tvId, seasonNumber) {
   seriesError.style.display = "none";
   episodeList.innerHTML = "<p>Loading episodes…</p>";
   episodeSelect.innerHTML = "";
 
-  // validate seasonNumber again
   const seasonNum = normalizeSeason(seasonNumber);
   if (seasonNum === null) {
     episodeList.innerHTML = "";
@@ -305,7 +299,6 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
     return;
   }
 
-  // populate episode select and list
   episodeSelect.innerHTML = "";
   currentEpisodes.forEach(ep => {
     const epNum = ep.episode_number;
@@ -318,7 +311,6 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
     item.className = "episode-item";
     item.innerHTML = `<strong>${epNum}. ${escapeHtml(ep.name || `Episode ${epNum}`)}</strong><div class="muted">${escapeHtml(ep.overview || "")}</div>`;
     item.addEventListener("click", () => {
-      // set selects and play
       seasonSelect.value = String(seasonNum);
       episodeSelect.value = String(epNum);
       const embedUrl = `${EMBED_BASE}/tv/${tvId}/season/${seasonNum}/episode/${epNum}`;
@@ -328,16 +320,56 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
     episodeList.appendChild(item);
   });
 
-  // auto-select first episode
   episodeSelect.selectedIndex = 0;
   episodeList.scrollTop = 0;
+}
+
+// ---------------------------
+// TRY EMBED PATTERN HANDLER
+// ---------------------------
+// When user clicks a Try button, we substitute placeholders and set iframe src.
+// This lets the user test which pattern actually loads in their browser.
+function handleTryPattern(pattern) {
+  if (!currentSeriesId) {
+    seriesError.textContent = "No series selected.";
+    seriesError.style.display = "block";
+    return;
+  }
+
+  // choose season/episode values to test: prefer selected, else first available
+  const seasonVal = seasonSelect.value || (currentSeasons[0] && String(currentSeasons[0].season_number)) || "1";
+  const episodeVal = episodeSelect.value || (currentEpisodes[0] && String(currentEpisodes[0].episode_number)) || "1";
+
+  const replacements = {
+    "{id}": String(currentSeriesId),
+    "{s}": String(seasonVal),
+    "{e}": String(episodeVal)
+  };
+
+  let url = pattern;
+  Object.keys(replacements).forEach(k => {
+    url = url.replace(new RegExp(k, "g"), replacements[k]);
+  });
+
+  // if pattern starts with slash, prefix embed base
+  if (url.startsWith("/")) url = EMBED_BASE + url;
+
+  // set iframe src so user can see whether it loads
+  seriesError.style.display = "none";
+  player.src = url;
+
+  // show a small hint to user
+  seriesError.textContent = `Testing: ${url}`;
+  seriesError.style.display = "block";
+  setTimeout(() => {
+    seriesError.style.display = "none";
+  }, 4000);
 }
 
 // ---------------------------
 // VALIDATION / NORMALIZATION
 // ---------------------------
 function normalizeSeason(val) {
-  // Accept numbers or numeric strings. Reject leading zeros (except "0").
   if (val === undefined || val === null) {
     showSeriesError("Season is required.");
     return null;
@@ -347,7 +379,6 @@ function normalizeSeason(val) {
     showSeriesError("Invalid season (must be numeric).");
     return null;
   }
-  // reject leading zeros like "01", but allow "0"
   if (s.length > 1 && s.startsWith("0")) {
     showSeriesError("Invalid season (no leading zeros).");
     return null;
