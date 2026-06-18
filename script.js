@@ -73,7 +73,7 @@ function renderMovies(movies) {
     // When user clicks a movie → load EmbedMaster player with TMDB ID
     card.addEventListener("click", () => {
       const tmdbId = movie.id;
-      const embedUrl = `https://embedmaster.com/movie/${tmdbId}`;
+      const embedUrl = `https://embedmaster.link/movie/${tmdbId}`;
       player.src = embedUrl;
     });
 
