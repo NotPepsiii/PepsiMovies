@@ -4,8 +4,23 @@
 const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
-// <-- Changed embed base to .com as requested
-const EMBED_BASE = "https://embedmaster.com";
+
+// Default embed base for movies (confirmed working)
+const MOVIE_EMBED_BASE = "https://embedmaster.link";
+
+// LocalStorage key for saved TV pattern
+const TV_PATTERN_KEY = "pepsi_tv_embed_pattern";
+
+// Common TV patterns to try (placeholders: {id}, {s}, {e})
+const DEFAULT_TV_PATTERNS = [
+  "/tv/{id}/season/{s}/episode/{e}",
+  "/series/{id}/season/{s}/episode/{e}",
+  "/watch/{id}?season={s}&episode={e}",
+  "/player/tv/{id}/{s}/{e}",
+  "/embed/tv/{id}/s{e}e{e}",   // kept for testing; may be invalid
+  "/tv/{id}",
+  "/series/{id}"
+];
 
 // ---------------------------
 // DOM
@@ -39,13 +54,26 @@ const playEpisodeBtn = document.getElementById("playEpisodeBtn");
 const seriesError = document.getElementById("seriesError");
 const episodeList = document.getElementById("episodeList");
 
-// Try buttons (delegated)
-const tryButtonsSelector = ".try-btn";
+const tryButtonsContainer = document.getElementById("tryButtons");
+const usePatternBtn = document.getElementById("usePatternBtn");
+const currentPatternLabel = document.getElementById("currentPatternLabel");
+
+// ---------------------------
+// STATE
+// ---------------------------
+let currentSeriesId = null;
+let currentSeasons = [];
+let currentEpisodes = [];
+let lastTestedPattern = null;
 
 // ---------------------------
 // INIT
 // ---------------------------
 document.addEventListener("DOMContentLoaded", () => {
+  // populate try buttons
+  renderTryButtons();
+
+  // load rows
   loadPopularMovies();
   loadTopRatedMovies();
   loadGenreMovies(28, actionRow);   // Action
@@ -53,17 +81,31 @@ document.addEventListener("DOMContentLoaded", () => {
   loadGenreMovies(35, comedyRow);   // Comedy
   loadPopularSeries();
 
-  // delegate try button clicks inside series panel
-  document.addEventListener("click", (e) => {
-    const t = e.target;
-    if (t && t.matches && t.matches(tryButtonsSelector)) {
-      handleTryPattern(t.getAttribute("data-pattern"));
-    }
+  // wire try/use pattern
+  tryButtonsContainer.addEventListener("click", (e) => {
+    const btn = e.target.closest(".try-btn");
+    if (!btn) return;
+    const pattern = btn.dataset.pattern;
+    handleTryPattern(pattern);
   });
+
+  usePatternBtn.addEventListener("click", () => {
+    if (!lastTestedPattern) return;
+    localStorage.setItem(TV_PATTERN_KEY, lastTestedPattern);
+    currentPatternLabel.textContent = `Saved pattern: ${lastTestedPattern}`;
+    usePatternBtn.style.display = "none";
+    showSeriesMessage("Pattern saved. Series will auto-play using this pattern.");
+  });
+
+  // show saved pattern if exists
+  const saved = localStorage.getItem(TV_PATTERN_KEY);
+  if (saved) {
+    currentPatternLabel.textContent = `Saved pattern: ${saved}`;
+  }
 });
 
 // ---------------------------
-// Tabs
+// TABS
 // ---------------------------
 tabMovies.addEventListener("click", () => {
   tabMovies.classList.add("active");
@@ -192,7 +234,8 @@ function renderRow(items, container, isTvFlag) {
         moviesView.style.display = "none";
         seriesView.style.display = "";
       } else {
-        const embedUrl = `${EMBED_BASE}/movie/${tmdbId}`;
+        // movies use the confirmed movie embed base
+        const embedUrl = `${MOVIE_EMBED_BASE}/movie/${tmdbId}`;
         player.src = embedUrl;
         if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
       }
@@ -205,10 +248,6 @@ function renderRow(items, container, isTvFlag) {
 // ---------------------------
 // SERIES PANEL / SEASONS / EPISODES
 // ---------------------------
-let currentSeriesId = null;
-let currentSeasons = [];
-let currentEpisodes = [];
-
 async function openSeriesPanel(tvId) {
   seriesError.style.display = "none";
   episodeList.innerHTML = "";
@@ -267,9 +306,17 @@ playEpisodeBtn.addEventListener("click", () => {
   const episodeNum = normalizeEpisode(episodeVal);
   if (seasonNum === null || episodeNum === null) return;
 
-  // use .com embed base for TV as requested
-  const embedUrl = `${EMBED_BASE}/tv/${currentSeriesId}/season/${seasonNum}/episode/${episodeNum}`;
-  player.src = embedUrl;
+  // If user saved a TV pattern, use it. Otherwise try default tv pattern first.
+  const savedPattern = localStorage.getItem(TV_PATTERN_KEY);
+  if (savedPattern) {
+    const url = buildUrlFromPattern(savedPattern, { id: currentSeriesId, s: seasonNum, e: episodeNum });
+    player.src = url;
+  } else {
+    // default attempt: common tv pattern
+    const url = `${MOVIE_EMBED_BASE}/tv/${currentSeriesId}/season/${seasonNum}/episode/${episodeNum}`;
+    player.src = url;
+  }
+
   if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
 });
 
@@ -314,8 +361,12 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
     item.addEventListener("click", () => {
       seasonSelect.value = String(seasonNum);
       episodeSelect.value = String(epNum);
-      const embedUrl = `${EMBED_BASE}/tv/${tvId}/season/${seasonNum}/episode/${epNum}`;
-      player.src = embedUrl;
+      // use saved pattern if exists
+      const savedPattern = localStorage.getItem(TV_PATTERN_KEY);
+      const url = savedPattern
+        ? buildUrlFromPattern(savedPattern, { id: tvId, s: seasonNum, e: epNum })
+        : `${MOVIE_EMBED_BASE}/tv/${tvId}/season/${seasonNum}/episode/${epNum}`;
+      player.src = url;
       if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
     });
     episodeList.appendChild(item);
@@ -328,37 +379,50 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
 // ---------------------------
 // TRY EMBED PATTERN HANDLER
 // ---------------------------
+function renderTryButtons() {
+  tryButtonsContainer.innerHTML = "";
+  const patterns = DEFAULT_TV_PATTERNS;
+  patterns.forEach(p => {
+    const btn = document.createElement("button");
+    btn.className = "try-btn";
+    btn.dataset.pattern = p;
+    btn.textContent = p;
+    tryButtonsContainer.appendChild(btn);
+  });
+}
+
 function handleTryPattern(pattern) {
   if (!currentSeriesId) {
-    seriesError.textContent = "No series selected.";
-    seriesError.style.display = "block";
+    showSeriesMessage("No series selected.");
     return;
   }
 
+  // choose season/episode values to test: prefer selected, else first available
   const seasonVal = seasonSelect.value || (currentSeasons[0] && String(currentSeasons[0].season_number)) || "1";
   const episodeVal = episodeSelect.value || (currentEpisodes[0] && String(currentEpisodes[0].episode_number)) || "1";
 
-  const replacements = {
-    "{id}": String(currentSeriesId),
-    "{s}": String(seasonVal),
-    "{e}": String(episodeVal)
-  };
+  const url = buildUrlFromPattern(pattern, { id: currentSeriesId, s: seasonVal, e: episodeVal });
 
-  let url = pattern;
-  Object.keys(replacements).forEach(k => {
-    url = url.replace(new RegExp(k, "g"), replacements[k]);
-  });
-
-  if (url.startsWith("/")) url = EMBED_BASE + url;
-
+  // set iframe src so user can see whether it loads
+  lastTestedPattern = pattern;
+  usePatternBtn.style.display = "inline-block";
+  currentPatternLabel.textContent = `Last tested: ${pattern}`;
   seriesError.style.display = "none";
   player.src = url;
 
-  seriesError.textContent = `Testing: ${url}`;
-  seriesError.style.display = "block";
-  setTimeout(() => {
-    seriesError.style.display = "none";
-  }, 4000);
+  // small hint
+  showSeriesMessage(`Testing: ${url} — if it loads, click "Use this pattern" to save it.`);
+}
+
+// Build URL from pattern and placeholders. If pattern starts with '/', prefix MOVIE_EMBED_BASE.
+function buildUrlFromPattern(pattern, { id, s, e }) {
+  let url = pattern.replace(/{id}/g, String(id)).replace(/{s}/g, String(s)).replace(/{e}/g, String(e));
+  if (url.startsWith("/")) url = MOVIE_EMBED_BASE + url;
+  // if pattern looks like query style (contains '?') and doesn't start with '/', prefix base + '/watch' fallback
+  if (!/^https?:\/\//i.test(url) && !url.startsWith(MOVIE_EMBED_BASE)) {
+    url = MOVIE_EMBED_BASE + (url.startsWith("/") ? url : "/" + url);
+  }
+  return url;
 }
 
 // ---------------------------
@@ -413,6 +477,14 @@ function normalizeEpisode(val) {
 function showSeriesError(msg) {
   seriesError.textContent = msg;
   seriesError.style.display = "block";
+}
+
+function showSeriesMessage(msg) {
+  seriesError.textContent = msg;
+  seriesError.style.display = "block";
+  setTimeout(() => {
+    seriesError.style.display = "none";
+  }, 4000);
 }
 
 // ---------------------------
