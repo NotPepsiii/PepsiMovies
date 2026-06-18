@@ -2,73 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PepsiMovies</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-<!-- PROFILE SCREEN -->
-<div id="profileScreen" class="profile-screen">
-  <h1>Who’s watching?</h1>
-  <div class="profiles">
-    <button onclick="selectProfile('User 1')">User 1</button>
-    <button onclick="selectProfile('Guest')">Guest</button>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none;">
-
-  <header class="top-nav">
-    <h1 class="logo">PepsiMovies</h1>
-
-    <div class="nav-right">
-      <span id="profileName"></span>
-
-      <div class="search-box">
-        <input id="searchInput" placeholder="Search movies..." />
-        <button id="searchBtn">Search</button>
+  <div id="profileScreen" class="profile-screen">
+    <div class="profile-card">
+      <h1>Who’s watching?</h1>
+      <p>Pick a profile to continue.</p>
+      <div class="profiles">
+        <button class="profile-btn" onclick="selectProfile('User 1')">User 1</button>
+        <button class="profile-btn" onclick="selectProfile('Guest')">Guest</button>
       </div>
     </div>
-  </header>
+  </div>
 
-  <main>
+  <div id="app" class="app" style="display:none;">
+    <header class="top-nav">
+      <div class="nav-left">
+        <h1 class="logo">PepsiMovies</h1>
+        <button id="myListNavBtn" class="nav-link">My List</button>
+      </div>
 
-    <section class="hero">
-      <iframe id="player"></iframe>
-      <div id="playerStatus"></div>
-    </section>
+      <div class="nav-right">
+        <span id="profileName" class="profile-name"></span>
+        <div class="search-box">
+          <input id="searchInput" type="text" placeholder="Search movies..." />
+          <button id="searchBtn">Search</button>
+        </div>
+      </div>
+    </header>
 
-    <section class="category" id="continueSection">
-      <h2>Continue Watching</h2>
-      <div id="continueRow" class="row"></div>
-    </section>
+    <main>
+      <section class="hero">
+        <iframe id="player" title="Trailer player" allowfullscreen frameborder="0"></iframe>
+        <div class="hero-overlay">
+          <p class="hero-kicker">Featured Movie</p>
+          <h2 id="heroTitle">Loading...</h2>
+          <p id="heroOverview" class="hero-overview"></p>
 
-    <section class="category">
-      <h2>Popular</h2>
-      <div id="popularRow" class="row"></div>
-    </section>
+          <div class="hero-actions">
+            <button id="heroPlayBtn" class="primary-btn">Play Trailer</button>
+            <button id="heroListBtn" class="secondary-btn">+ My List</button>
+            <button id="heroDetailsBtn" class="secondary-btn">Details</button>
+          </div>
 
-    <section class="category">
-      <h2>Top Rated</h2>
-      <div id="topRatedRow" class="row"></div>
-    </section>
+          <div id="playerStatus" class="player-status"></div>
+        </div>
+      </section>
 
-    <section class="category">
-      <h2>Action</h2>
-      <div id="actionRow" class="row"></div>
-    </section>
+      <section id="searchSection" class="category" style="display:none;">
+        <h2>Search Results</h2>
+        <div id="searchRow" class="row"></div>
+      </section>
 
-    <section class="category">
-      <h2>Horror</h2>
-      <div id="horrorRow" class="row"></div>
-    </section>
+      <section id="continueSection" class="category">
+        <h2>Continue Watching</h2>
+        <div id="continueRow" class="row"></div>
+      </section>
 
-  </main>
-</div>
+      <section id="myListSection" class="category">
+        <h2>My List</h2>
+        <div id="myListRow" class="row"></div>
+      </section>
 
-<script src="script.js"></script>
+      <section class="category">
+        <h2>Popular Movies</h2>
+        <div id="popularRow" class="row"></div>
+      </section>
+
+      <section class="category">
+        <h2>Top Rated</h2>
+        <div id="topRatedRow" class="row"></div>
+      </section>
+
+      <section class="category">
+        <h2>Action</h2>
+        <div id="actionRow" class="row"></div>
+      </section>
+
+      <section class="category">
+        <h2>Horror</h2>
+        <div id="horrorRow" class="row"></div>
+      </section>
+
+      <section class="category">
+        <h2>Comedy</h2>
+        <div id="comedyRow" class="row"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="detailsModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <button id="closeModalBtn" class="close-btn" aria-label="Close">✕</button>
+      <img id="modalPoster" class="modal-poster" alt="" />
+      <div class="modal-body">
+        <h3 id="modalTitle"></h3>
+        <p id="modalMeta" class="modal-meta"></p>
+        <p id="modalOverview" class="modal-overview"></p>
+        <div class="modal-actions">
+          <button id="modalPlayBtn" class="primary-btn">Play Trailer</button>
+          <button id="modalListBtn" class="secondary-btn">+ My List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
