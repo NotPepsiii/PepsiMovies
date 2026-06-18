@@ -4,7 +4,8 @@
 const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
-const EMBED_BASE = "https://embedmaster.link"; // confirmed working domain for movies
+// <-- Changed embed base to .com as requested
+const EMBED_BASE = "https://embedmaster.com";
 
 // ---------------------------
 // DOM
@@ -266,7 +267,7 @@ playEpisodeBtn.addEventListener("click", () => {
   const episodeNum = normalizeEpisode(episodeVal);
   if (seasonNum === null || episodeNum === null) return;
 
-  // default pattern we try first
+  // use .com embed base for TV as requested
   const embedUrl = `${EMBED_BASE}/tv/${currentSeriesId}/season/${seasonNum}/episode/${episodeNum}`;
   player.src = embedUrl;
   if (window.innerWidth < 900) document.querySelector(".player-section").scrollIntoView({ behavior: "smooth" });
@@ -327,8 +328,6 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
 // ---------------------------
 // TRY EMBED PATTERN HANDLER
 // ---------------------------
-// When user clicks a Try button, we substitute placeholders and set iframe src.
-// This lets the user test which pattern actually loads in their browser.
 function handleTryPattern(pattern) {
   if (!currentSeriesId) {
     seriesError.textContent = "No series selected.";
@@ -336,7 +335,6 @@ function handleTryPattern(pattern) {
     return;
   }
 
-  // choose season/episode values to test: prefer selected, else first available
   const seasonVal = seasonSelect.value || (currentSeasons[0] && String(currentSeasons[0].season_number)) || "1";
   const episodeVal = episodeSelect.value || (currentEpisodes[0] && String(currentEpisodes[0].episode_number)) || "1";
 
@@ -351,14 +349,11 @@ function handleTryPattern(pattern) {
     url = url.replace(new RegExp(k, "g"), replacements[k]);
   });
 
-  // if pattern starts with slash, prefix embed base
   if (url.startsWith("/")) url = EMBED_BASE + url;
 
-  // set iframe src so user can see whether it loads
   seriesError.style.display = "none";
   player.src = url;
 
-  // show a small hint to user
   seriesError.textContent = `Testing: ${url}`;
   seriesError.style.display = "block";
   setTimeout(() => {
