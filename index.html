@@ -1,35 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MyFlix</title>
+  <meta charset="utf-8">
+  <title>PepsiMovies</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header class="top-nav">
-    <h1 class="logo">MyFlix</h1>
+    <div class="left">
+      <h1 class="logo">PepsiMovies</h1>
+    </div>
 
-    <div class="search-box">
-      <input id="searchInput" type="text" placeholder="Search movies or series...">
-      <button id="searchBtn">Search</button>
+    <div class="right">
+      <div class="search-box">
+        <input id="searchInput" type="text" placeholder="Search movies or series...">
+        <button id="searchBtn">Search</button>
+      </div>
     </div>
   </header>
 
   <main>
-
     <!-- Player -->
     <section class="player-section">
-      <iframe id="player" allowfullscreen frameborder="0"></iframe>
+      <iframe id="player" allowfullscreen frameborder="0" title="Player"></iframe>
     </section>
 
-    <!-- Search Results -->
+    <!-- Search Results (hidden until used) -->
     <section class="category" id="searchSection" style="display:none;">
       <h2>Search Results</h2>
       <div id="searchRow" class="row"></div>
     </section>
 
-    <!-- Categories -->
+    <!-- Movie / TV Rows -->
     <section class="category">
       <h2>Popular Movies</h2>
       <div id="popularRow" class="row"></div>
@@ -59,7 +62,6 @@
       <h2>TV Series</h2>
       <div id="seriesRow" class="row"></div>
     </section>
-
   </main>
 
   <script src="script.js"></script>
