@@ -1,15 +1,17 @@
+// script.js - Replace your existing file with this
+
 // CONFIG
 const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
-// Use the movie embed base that worked for you
+// Embed host that worked for movies
 const EMBED_BASE = "https://embedmaster.link";
 
-// LocalStorage key for saved TV pattern (pattern string)
+// LocalStorage key for saved TV pattern
 const TV_PATTERN_KEY = "pepsi_tv_embed_pattern";
 
-// Candidate fallback patterns (TMDB id based) — kept as fallback only
+// Fallback TMDB patterns (used only if IMDb pattern fails)
 const FALLBACK_PATTERNS = [
   "/player/tv/{id}/{s}/{e}?player_id={player_id}",
   "/tv/{id}/season/{s}/episode/{e}?player_id={player_id}",
@@ -48,8 +50,8 @@ const patternInfo = document.getElementById("patternInfo");
 const episodeList = document.getElementById("episodeList");
 
 // STATE
-let currentSeriesId = null;      // TMDB tv id
-let currentImdbId = null;        // IMDb id like tt0903747
+let currentSeriesId = null;   // TMDB id
+let currentImdbId = null;     // IMDb id like "tt0903747"
 let currentSeasons = [];
 let currentEpisodes = [];
 let trying = false;
@@ -233,9 +235,10 @@ async function openSeriesPanel(tvId) {
   currentSeasons.sort((a,b) => a.season_number - b.season_number);
   seasonSelect.innerHTML = "";
   currentSeasons.forEach(s => {
+    // ensure option value is numeric string
     const opt = document.createElement("option");
-    opt.value = String(s.season_number);
-    opt.textContent = `Season ${s.season_number} ${s.name ? `- ${s.name}` : ""}`;
+    opt.value = String(Number(s.season_number));
+    opt.textContent = `Season ${s.season_number}${s.name ? ` - ${s.name}` : ""}`;
     seasonSelect.appendChild(opt);
   });
 
@@ -354,7 +357,7 @@ async function loadSeasonEpisodes(tvId, seasonNumber) {
 
   episodeSelect.innerHTML = "";
   currentEpisodes.forEach(ep => {
-    const epNum = ep.episode_number;
+    const epNum = Number(ep.episode_number);
     const opt = document.createElement("option");
     opt.value = String(epNum);
     opt.textContent = `${epNum}. ${ep.name || `Episode ${epNum}`}`;
@@ -470,46 +473,63 @@ function generatePlayerId() {
   return id;
 }
 
-// VALIDATION
+// -----------------
+// Robust validators
+// -----------------
+
+// Accepts numeric strings, "Season 1", "S01", "01", "0", numbers.
+// Returns normalized string number (no leading zeros except "0"), or null on invalid.
 function normalizeSeason(val) {
   if (val === undefined || val === null) {
     showSeriesError("Season is required.");
     return null;
   }
-  const s = String(val).trim();
-  if (!/^\d+$/.test(s)) {
-    showSeriesError("Invalid season (must be numeric).");
+  const sRaw = String(val).trim();
+
+  // Extract first number sequence from the string
+  const m = sRaw.match(/(\d+)/);
+  if (!m) {
+    showSeriesError("Invalid season (no numeric value found).");
     return null;
   }
+  let s = m[1]; // digits only
+
+  // Remove leading zeros unless the number is exactly "0"
   if (s.length > 1 && s.startsWith("0")) {
-    showSeriesError("Invalid season (no leading zeros).");
-    return null;
+    s = s.replace(/^0+/, "");
+    if (s === "") s = "0";
   }
+
+  // Convert and validate range
   const n = Number(s);
-  if (n < 0 || n > 9999) {
+  if (!Number.isInteger(n) || n < 0 || n > 9999) {
     showSeriesError("Invalid season (must be 0-9999).");
     return null;
   }
+
   seriesError.style.display = "none";
   return String(n);
 }
 
+// Similar robust episode parser
 function normalizeEpisode(val) {
   if (val === undefined || val === null) {
     showSeriesError("Episode is required.");
     return null;
   }
-  const s = String(val).trim();
-  if (!/^\d+$/.test(s)) {
-    showSeriesError("Invalid episode (must be numeric).");
+  const sRaw = String(val).trim();
+  const m = sRaw.match(/(\d+)/);
+  if (!m) {
+    showSeriesError("Invalid episode (no numeric value found).");
     return null;
   }
+  let s = m[1];
   if (s.length > 1 && s.startsWith("0")) {
-    showSeriesError("Invalid episode (no leading zeros).");
-    return null;
+    s = s.replace(/^0+/, "");
+    if (s === "") s = "0";
   }
   const n = Number(s);
-  if (n < 0 || n > 9999) {
+  if (!Number.isInteger(n) || n < 0 || n > 9999) {
     showSeriesError("Invalid episode (must be 0-9999).");
     return null;
   }
