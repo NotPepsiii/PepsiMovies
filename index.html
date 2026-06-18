@@ -1,71 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <title>PepFlick</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netflix Style Movie Site</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <header>
-    <h1>PepFlick</h1>
 
-    <input id="searchInput" type="text" placeholder="Search for a movie...">
-    <button id="searchBtn">Search</button>
+  <!-- NAV -->
+  <header class="nav">
 
-    <!-- INFO BUTTON -->
-    <button id="infoBtn" class="info-btn">i</button>
+    <div class="logo">
+      NETFLIX<span>CLONE</span>
+      <small class="ad-note">
+        An ad blocker is recommended to avoid ad popups but not required!
+      </small>
+    </div>
 
-    <!-- SUPPORT BUTTON -->
-    <a class="support-btn" href="https://paypal.me/pepcolaa" target="_blank">
-      Support Developer Pepsi &lt;3
-    </a>
+    <div class="nav-center">
+      <input id="searchInput" type="text" placeholder="Search movies..." />
+      <button id="searchBtn">Search</button>
+    </div>
+
+    <div class="support">
+      <button id="supportBtn">Support developer Pepsi &lt;3</button>
+    </div>
+
   </header>
 
+  <!-- PLAYER -->
+  <section class="hero">
+    <iframe id="player" allowfullscreen frameborder="0"></iframe>
+  </section>
+
+  <!-- CONTENT -->
   <main>
-    <section class="left">
+
+    <section class="row">
       <h2 id="sectionTitle">Popular Movies</h2>
-
-      <!-- MOVIE ROW -->
-      <div id="movies" class="movie-row"></div>
+      <div id="movies" class="row-posters"></div>
     </section>
 
-    <section class="right">
-      <h2>Player</h2>
-
-      <iframe
-        id="player"
-        width="100%"
-        height="500"
-        allowfullscreen
-        frameborder="0">
-      </iframe>
+    <section class="row">
+      <h2>Action</h2>
+      <div id="actionRow" class="row-posters"></div>
     </section>
+
+    <section class="row">
+      <h2>Comedy</h2>
+      <div id="comedyRow" class="row-posters"></div>
+    </section>
+
+    <section class="row">
+      <h2>Drama</h2>
+      <div id="dramaRow" class="row-posters"></div>
+    </section>
+
+    <section class="row">
+      <h2>Horror</h2>
+      <div id="horrorRow" class="row-posters"></div>
+    </section>
+
   </main>
 
-  <!-- INFO MODAL -->
-  <div id="infoModal" class="modal hidden">
-    <div class="modal-content">
-      <h2>About PepFlick</h2>
-
-      <p>
-        PepFlick is a lightweight movie discovery platform using TMDB data and external embeds.
-      </p>
-
-      <p>
-        ⚠️ An ad blocker is recommended to avoid popups from some external sources.
-      </p>
-
-      <p>
-        Built for personal and educational use.
-      </p>
-
-      <button id="closeModal">Close</button>
-    </div>
-  </div>
-
   <script src="script.js"></script>
-</body>
 
+  <!-- PAYPAL BUTTON -->
+  <script>
+    document.getElementById("supportBtn").addEventListener("click", () => {
+      window.open("https://www.paypal.me/pepcolaa", "_blank");
+    });
+  </script>
+
+</body>
 </html>
