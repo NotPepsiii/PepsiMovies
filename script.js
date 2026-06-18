@@ -1,7 +1,6 @@
 const TMDB_API_KEY = "35ee82bcad013e6a6237a0a087d7eb32";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
-const YT_EMBED = "https://www.youtube.com/embed/";
 
 const LS_PROFILE = "pm_profile";
 const LS_CONTINUE = "pm_continue_";
@@ -11,7 +10,6 @@ const LS_HERO = "pm_hero_movie";
 let currentProfile = localStorage.getItem(LS_PROFILE) || "";
 let currentHeroMovie = null;
 let currentModalMovie = null;
-let trailerCache = new Map();
 let rowsLoaded = false;
 
 const dom = {
@@ -48,7 +46,11 @@ const dom = {
   modalOverview: document.getElementById("modalOverview"),
   modalPlayBtn: document.getElementById("modalPlayBtn"),
   modalListBtn: document.getElementById("modalListBtn"),
-  closeModalBtn: document.getElementById("closeModalBtn")
+  closeModalBtn: document.getElementById("closeModalBtn"),
+
+  mainContent: document.getElementById("mainContent"),
+  topNav: document.getElementById("topNav"),
+  heroSection: document.getElementById("heroSection")
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -85,7 +87,7 @@ function wireUI() {
   });
 
   dom.heroPlayBtn.addEventListener("click", () => {
-    if (currentHeroMovie) playTrailer(currentHeroMovie);
+    if (currentHeroMovie) playMovie(currentHeroMovie);
   });
 
   dom.heroListBtn.addEventListener("click", () => {
@@ -97,7 +99,7 @@ function wireUI() {
   });
 
   dom.modalPlayBtn.addEventListener("click", () => {
-    if (currentModalMovie) playTrailer(currentModalMovie);
+    if (currentModalMovie) playMovie(currentModalMovie);
   });
 
   dom.modalListBtn.addEventListener("click", () => {
@@ -223,7 +225,7 @@ function renderRow(items, container, options = {}) {
 
     card.innerHTML = `
       <button class="card-fav ${inList ? "active" : ""}" aria-label="Toggle My List">${inList ? "♥" : "+"}</button>
-      <button class="card-play" aria-label="Play trailer">▶</button>
+      <button class="card-play" aria-label="Play movie">▶</button>
       <img src="${poster}" alt="${escapeHtml(title)}">
       <div class="card-info">
         <div class="card-title">${escapeHtml(title)}</div>
@@ -240,11 +242,11 @@ function renderRow(items, container, options = {}) {
 
     card.querySelector(".card-play").addEventListener("click", (e) => {
       e.stopPropagation();
-      openMovie(movie);
+      playMovie(movie);
     });
 
     card.addEventListener("click", () => {
-      openMovie(movie);
+      openModal(movie);
     });
 
     card.addEventListener("mouseenter", () => {
@@ -266,7 +268,6 @@ async function openMovie(movie) {
   setHeroMovie(movie, true);
   saveContinue(movie);
   openModal(movie);
-  await playTrailer(movie);
 }
 
 function setHeroMovie(movie, save = true) {
@@ -281,31 +282,28 @@ function setHeroMovie(movie, save = true) {
   updateHeroListButton();
 }
 
-async function playTrailer(movie) {
-  dom.playerStatus.textContent = "Loading trailer...";
-  const trailer = await getTrailer(movie.id);
-  if (trailer) {
-    dom.player.src = `${YT_EMBED}${trailer}?autoplay=1&mute=1&rel=0&modestbranding=1`;
-    dom.playerStatus.textContent = "Playing trailer";
-  } else {
+async function playMovie(movie) {
+  dom.playerStatus.textContent = "Loading movie...";
+
+  const data = await fetchJson(
+    tmdb(`/movie/${movie.id}/external_ids`)
+  );
+
+  const imdbId = data?.imdb_id;
+
+  if (!imdbId) {
+    dom.playerStatus.textContent = "No IMDb ID found.";
     dom.player.removeAttribute("src");
-    dom.playerStatus.textContent = "Trailer not available";
+    return;
   }
-}
 
-async function getTrailer(movieId) {
-  if (trailerCache.has(movieId)) return trailerCache.get(movieId);
+  dom.mainContent.style.display = "none";
+  dom.topNav.style.display = "none";
 
-  const data = await fetchJson(tmdb(`/movie/${movieId}/videos`));
-  const videos = data?.results || [];
-  const preferred =
-    videos.find(v => v.site === "YouTube" && v.type === "Trailer") ||
-    videos.find(v => v.site === "YouTube" && v.type === "Teaser") ||
-    videos.find(v => v.site === "YouTube");
+  dom.heroSection.style.height = "100vh";
 
-  const key = preferred?.key || null;
-  trailerCache.set(movieId, key);
-  return key;
+  dom.player.src = `https://embedmaster.com/?ref=embdmstrplayer.com&imdb=${imdbId}`;
+  dom.playerStatus.textContent = "Playing movie";
 }
 
 function openModal(movie) {
