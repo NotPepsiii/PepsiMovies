@@ -24,6 +24,7 @@ body {
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
+/* LOGO */
 .logo {
   font-size: 1.4rem;
   font-weight: 800;
@@ -34,6 +35,16 @@ body {
   color: white;
   margin-left: 6px;
   font-weight: 500;
+}
+
+/* AD MESSAGE */
+.ad-note {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin-top: 3px;
+  max-width: 420px;
 }
 
 /* SEARCH */
@@ -114,7 +125,7 @@ main {
   color: #ddd;
 }
 
-/* HORIZONTAL SCROLL */
+/* ROW SCROLL */
 .row-posters {
   display: flex;
   gap: 10px;
