@@ -14,7 +14,7 @@
 
 <body>
 
-  <!-- TOP NAV -->
+  <!-- NAV -->
   <header class="nav">
     <div class="logo">NETFLIX<span>CLONE</span></div>
 
@@ -22,9 +22,14 @@
       <input id="searchInput" type="text" placeholder="Search movies..." />
       <button id="searchBtn">Search</button>
     </div>
+
+    <!-- SUPPORT BUTTON -->
+    <div class="support">
+      <button id="supportBtn">Support developer Pepsi &lt;3</button>
+    </div>
   </header>
 
-  <!-- HERO PLAYER -->
+  <!-- PLAYER HERO -->
   <section class="hero">
     <iframe id="player" allowfullscreen frameborder="0"></iframe>
   </section>
@@ -37,7 +42,6 @@
       <div id="movies" class="row-posters"></div>
     </section>
 
-    <!-- CATEGORY ROWS -->
     <section class="row">
       <h2>Action</h2>
       <div id="actionRow" class="row-posters"></div>
@@ -61,5 +65,13 @@
   </main>
 
   <script src="script.js"></script>
+
+  <!-- PAYPAL BUTTON LOGIC -->
+  <script>
+    document.getElementById("supportBtn").addEventListener("click", () => {
+      window.open("https://www.paypal.me/pepcolaa", "_blank");
+    });
+  </script>
+
 </body>
 </html>
