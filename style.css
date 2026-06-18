@@ -50,6 +50,16 @@ main { padding-bottom: 60px; }
 .primary { background: #e50914; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; }
 .error { color: #ff8a8a; margin-top: 8px; }
 
+/* Try buttons */
+.try-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.03); color: #fff; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.try-btn:hover { background: rgba(255,255,255,0.06); }
+
+.try-action { background: #0b6cff; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+.try-action:hover { opacity: 0.95; }
+
+.use-pattern-btn { background: #1f8b4c; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+.use-pattern-btn:hover { opacity: 0.95; }
+
 /* Episode list */
 .episode-list { margin-top: 12px; max-height: 220px; overflow-y: auto; padding-right: 6px; }
 .episode-item { padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); margin-bottom: 8px; cursor: pointer; }
