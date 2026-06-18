@@ -10,7 +10,7 @@ body {
   color: white;
 }
 
-/* NAVBAR */
+/* NAV */
 .nav {
   position: sticky;
   top: 0;
@@ -19,7 +19,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 14px 24px;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -28,23 +28,23 @@ body {
   font-size: 1.4rem;
   font-weight: 800;
   color: #e50914;
-  letter-spacing: 1px;
 }
 
 .logo span {
   color: white;
-  font-weight: 500;
   margin-left: 6px;
+  font-weight: 500;
 }
 
+/* SEARCH */
 .nav-center {
   display: flex;
   gap: 10px;
 }
 
 .nav-center input {
-  padding: 10px 12px;
   width: 260px;
+  padding: 10px 12px;
   border-radius: 6px;
   border: none;
   background: #111;
@@ -62,12 +62,34 @@ body {
   cursor: pointer;
 }
 
+/* SUPPORT BUTTON */
+.support {
+  display: flex;
+  align-items: center;
+}
+
+#supportBtn {
+  background: linear-gradient(135deg, #ff4d6d, #ff2e63);
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 6px 18px rgba(255, 46, 99, 0.25);
+}
+
+#supportBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255, 46, 99, 0.35);
+}
+
 /* HERO PLAYER */
 .hero {
   width: 100%;
   height: 420px;
   background: black;
-  display: flex;
 }
 
 .hero iframe {
@@ -92,27 +114,26 @@ main {
   color: #ddd;
 }
 
-/* HORIZONTAL SCROLL ROW */
+/* HORIZONTAL SCROLL */
 .row-posters {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 10px;
-  scroll-behavior: smooth;
 }
 
 .row-posters::-webkit-scrollbar {
   display: none;
 }
 
-/* MOVIE CARD (NETFLIX STYLE) */
+/* CARD */
 .movie-card {
   min-width: 140px;
   height: 210px;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: 0.2s ease;
   position: relative;
 }
 
@@ -127,27 +148,16 @@ main {
   z-index: 10;
 }
 
-/* hover info overlay */
+/* INFO */
 .movie-info {
   position: absolute;
   bottom: 0;
   width: 100%;
   padding: 6px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
   font-size: 0.75rem;
 }
 
 .movie-title {
   font-weight: 600;
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .nav-center input {
-    width: 140px;
-  }
-
-  .hero {
-    height: 260px;
-  }
 }
