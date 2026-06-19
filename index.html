@@ -1,89 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PEPSITV</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-</head>
-
-<body>
-
-  <!-- NAV -->
-  <header class="nav">
-
-    <div class="logo">
-      PEPSI<span>TV</span>
-      <small class="ad-note">
-        An ad blocker is recommended to avoid ad popups but not required!
-      </small>
-    </div>
-
-    <div class="nav-center">
-      <input id="searchInput" type="text" placeholder="Search movies..." />
-      <button id="searchBtn">Search</button>
-    </div>
-
-    <div class="support">
-
-      <!-- NEW: Adblock install button -->
-      <button id="adblockBtn" class="adblock-btn">
-        Install Ad Blocker
-      </button>
-
-      <button id="supportBtn">Support developer Pepsi &lt;3</button>
-    </div>
-
-  </header>
-
-  <!-- PLAYER -->
-  <section class="hero">
-    <iframe id="player" allowfullscreen frameborder="0"></iframe>
-  </section>
-
-  <!-- CONTENT -->
-  <main>
-
-    <section class="row">
-      <h2 id="sectionTitle">Popular Movies</h2>
-      <div id="movies" class="row-posters"></div>
-    </section>
-
-    <section class="row">
-      <h2>Action</h2>
-      <div id="actionRow" class="row-posters"></div>
-    </section>
-
-    <section class="row">
-      <h2>Comedy</h2>
-      <div id="comedyRow" class="row-posters"></div>
-    </section>
-
-    <section class="row">
-      <h2>Drama</h2>
-      <div id="dramaRow" class="row-posters"></div>
-    </section>
-
-    <section class="row">
-      <h2>Horror</h2>
-      <div id="horrorRow" class="row-posters"></div>
-    </section>
-
-  </main>
-
-  <script src="script.js"></script>
-
-  <!-- PAYPAL BUTTON -->
-  <script>
-    document.getElementById("supportBtn").addEventListener("click", () => {
-      window.open("https://www.paypal.me/pepcolaa", "_blank");
-    });
-  </script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pep Flick</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+

@@ -1,0 +1,6 @@
+{
+  "name": "Pep Flick",
+  "description": "A modern pepflicks movie search and streaming player platform powered by TMDB and custom embeds.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
