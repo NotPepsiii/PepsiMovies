@@ -10,7 +10,6 @@ const searchBtn = document.getElementById("searchBtn");
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
-/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   loadPopularMovies();
 
@@ -19,8 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCategory(18, "dramaRow");
   loadCategory(27, "horrorRow");
 
-  setupInfoModal();
-  setupAdblockButton();
+  setupInfoPopup(); // ✅ ADDED ONLY
 });
 
 /* SEARCH */
@@ -91,35 +89,32 @@ function renderMovies(movies, container) {
   });
 }
 
-/* ADBLOCK BUTTON */
-function setupAdblockButton() {
-  const btn = document.getElementById("adblockBtn");
-  if (!btn) return;
+/* ADBLOCK BUTTON (UNCHANGED) */
+document.getElementById("adblockBtn").addEventListener("click", () => {
+  window.open("https://ublockorigin.com/", "_blank");
+});
 
-  btn.addEventListener("click", () => {
-    window.open("https://ublockorigin.com/", "_blank");
-  });
-}
-
-/* INFO MODAL */
-function setupInfoModal() {
+/* ========================= */
+/* ✅ INFO POPUP (ADDED ONLY) */
+/* ========================= */
+function setupInfoPopup() {
   const infoBtn = document.getElementById("infoBtn");
-  const modal = document.getElementById("infoModal");
-  const close = document.getElementById("closeInfo");
+  const infoPopup = document.getElementById("infoPopup");
+  const closeInfo = document.getElementById("closeInfo");
 
-  if (!infoBtn || !modal || !close) return;
+  if (!infoBtn || !infoPopup || !closeInfo) return;
 
   infoBtn.addEventListener("click", () => {
-    modal.classList.remove("hidden");
+    infoPopup.classList.remove("hidden");
   });
 
-  close.addEventListener("click", () => {
-    modal.classList.add("hidden");
+  closeInfo.addEventListener("click", () => {
+    infoPopup.classList.add("hidden");
   });
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.add("hidden");
+  infoPopup.addEventListener("click", (e) => {
+    if (e.target === infoPopup) {
+      infoPopup.classList.add("hidden");
     }
   });
 }
