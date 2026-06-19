@@ -188,3 +188,64 @@ main {
   background: #3a3a3a;
   transform: translateY(-2px);
 }
+
+/* INFO BUTTON */
+.info-btn {
+  background: #1f1f1f;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.info-btn:hover {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+}
+
+/* MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-box {
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 420px;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-box h2 {
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.85);
+}
+
+.modal-box button {
+  margin-top: 15px;
+  background: #e50914;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+}
