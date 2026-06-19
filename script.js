@@ -10,6 +10,7 @@ const searchBtn = document.getElementById("searchBtn");
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 
+/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   loadPopularMovies();
 
@@ -17,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCategory(35, "comedyRow");
   loadCategory(18, "dramaRow");
   loadCategory(27, "horrorRow");
+
+  setupInfoModal();
+  setupAdblockButton();
 });
 
 /* SEARCH */
@@ -87,14 +91,23 @@ function renderMovies(movies, container) {
   });
 }
 
-document.getElementById("adblockBtn").addEventListener("click", () => {
-  window.open("https://ublockorigin.com/", "_blank");
-});
+/* ADBLOCK BUTTON */
+function setupAdblockButton() {
+  const btn = document.getElementById("adblockBtn");
+  if (!btn) return;
 
+  btn.addEventListener("click", () => {
+    window.open("https://ublockorigin.com/", "_blank");
+  });
+}
+
+/* INFO MODAL */
 function setupInfoModal() {
   const infoBtn = document.getElementById("infoBtn");
   const modal = document.getElementById("infoModal");
   const close = document.getElementById("closeInfo");
+
+  if (!infoBtn || !modal || !close) return;
 
   infoBtn.addEventListener("click", () => {
     modal.classList.remove("hidden");
@@ -110,5 +123,3 @@ function setupInfoModal() {
     }
   });
 }
-
-document.addEventListener("DOMContentLoaded", setupInfoModal);
