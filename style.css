@@ -77,6 +77,12 @@ body {
 .support {
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.support button {
+  white-space: nowrap;
 }
 
 #supportBtn {
@@ -173,13 +179,13 @@ main {
   font-weight: 600;
 }
 
+/* ADBLOCK BUTTON */
 .adblock-btn {
   background: #2b2b2b;
   color: white;
   border: 1px solid rgba(255,255,255,0.1);
   padding: 10px 12px;
   border-radius: 8px;
-  margin-right: 8px;
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -196,7 +202,6 @@ main {
   border: 1px solid rgba(255,255,255,0.1);
   padding: 10px 12px;
   border-radius: 8px;
-  margin-right: 8px;
   cursor: pointer;
   transition: 0.2s ease;
 }
