@@ -17,8 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCategory(35, "comedyRow");
   loadCategory(18, "dramaRow");
   loadCategory(27, "horrorRow");
-
-  setupInfoPopup(); // ✅ ADDED ONLY
 });
 
 /* SEARCH */
@@ -89,32 +87,6 @@ function renderMovies(movies, container) {
   });
 }
 
-/* ADBLOCK BUTTON (UNCHANGED) */
 document.getElementById("adblockBtn").addEventListener("click", () => {
   window.open("https://ublockorigin.com/", "_blank");
 });
-
-/* ========================= */
-/* ✅ INFO POPUP (ADDED ONLY) */
-/* ========================= */
-function setupInfoPopup() {
-  const infoBtn = document.getElementById("infoBtn");
-  const infoPopup = document.getElementById("infoPopup");
-  const closeInfo = document.getElementById("closeInfo");
-
-  if (!infoBtn || !infoPopup || !closeInfo) return;
-
-  infoBtn.addEventListener("click", () => {
-    infoPopup.classList.remove("hidden");
-  });
-
-  closeInfo.addEventListener("click", () => {
-    infoPopup.classList.add("hidden");
-  });
-
-  infoPopup.addEventListener("click", (e) => {
-    if (e.target === infoPopup) {
-      infoPopup.classList.add("hidden");
-    }
-  });
-}
